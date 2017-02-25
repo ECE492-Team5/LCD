@@ -2,7 +2,7 @@
 # Makefile based on Terasic Makefile for my_first_hps-fpga template project
 
 TARGET = lcd_test
-CFLAGS = -static -g -Wall -I$/home/debian/hwlib/include
+CFLAGS = -static -g -Wall -I /home/debian/hwlib/include
 LDFLAGS = -g -Wall
 CC=gcc
 
