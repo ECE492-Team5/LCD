@@ -2,13 +2,14 @@
 # Makefile based on Terasic Makefile for my_first_hps-fpga template project
 
 TARGET = lcd_test
-CFLAGS = -g -Wall
+CFLAGS = -static -g -Wall -I$/home/debian/hwlib/include
+LDFLAGS = -g -Wall
 CC=gcc
 
 build: $(TARGET)
 
 $(TARGET): $(TARGET).o
-	$(CC) $(LDFLAGS) $^ -o $@
+	$(CC) $(LDLAGS) $^ -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
