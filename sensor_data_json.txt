@@ -1,10 +1,10 @@
 {
 	"current_sensor_0":	{
-		"min_avg_voltage":	12185.5,
-		"max_avg_voltage":	13662.5,
+		"min_avg_voltage":	7474.3,
+		"max_avg_voltage":	9528.9,
 		"min_amperage":	0,
 		"max_amperage":	200,
-		"multiplier":	0.13541
+		"multiplier":	0.097343
 	},
 	"current_sensor_1":	{
 		"min_avg_voltage":	0,

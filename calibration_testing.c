@@ -2,14 +2,11 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
-// #include <error.h>
+// #include <error.h>                               // comment out for testing
 #include <stdlib.h>
 #include <sys/mman.h>
 #include "cjson/cJSON.h"
 #include "cjson/cJSON.c"
-
-//testing
-#include <time.h>
 
 // Information from Terasic's DE0-Nano-SoC_My_First_HPS-Fpga manual on the 
 // DE0-Nano-SoC_v1.1.0_SystemCD:
@@ -40,7 +37,7 @@ char *readFile();
 void writeFile(char *str);
 void init_sensor_json(cJSON **root, char *name);
 
-// JSON library link: https://github.com/DaveGamble/cJSON/tree/master
+// cJSON library link: https://github.com/DaveGamble/cJSON/tree/master
 
 int main(int argc, char**argv) {
 	//testing
@@ -55,9 +52,8 @@ int main(int argc, char**argv) {
     int channel = 0x00 & 0x07;
     
     if (argc == 2) {
-        // enter the sensor value.
         sprintf(sensor_name, "current_sensor_%i", atoi(argv[1]));
-        // channel = ((uint8_t) atoi(argv[1])) & 0x07;
+        // channel = ((uint8_t) atoi(argv[1])) & 0x07;              // comment out for testing
     } else {
     	printf("Incorrect number of inputs.\n");
     	exit(1);
@@ -162,9 +158,8 @@ int main(int argc, char**argv) {
     exit(EXIT_SUCCESS);
 }
 
-// void get_avg_sensor_value(double *value, uint32_t **adc_base) {
-void get_avg_sensor_value(double *value) {
-    srand(time(NULL)); 
+// void get_avg_sensor_value(double *value, uint32_t **adc_base) {      // comment out for testing
+void get_avg_sensor_value(double *value) { 
     int i;
     *value = 0;
     for (i = 0; i < SAMPLE_SIZE; ++i) {
@@ -207,6 +202,7 @@ void writeFile(char *str) {
 void init_sensor_json(cJSON **root, char name[20]) {
     cJSON *sensor;
     cJSON_AddItemToObject(*root, name, sensor = cJSON_CreateObject());
+
     cJSON_AddNumberToObject(sensor, MIN_VOLTS, 0.00);
     cJSON_AddNumberToObject(sensor, MAX_VOLTS, 0.00);
     cJSON_AddNumberToObject(sensor, MIN_AMPS, 0.00);
