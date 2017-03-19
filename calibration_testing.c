@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
-// #include <error.h>                               // comment out for testing
+#include <error.h>                               // comment out for testing
 #include <stdlib.h>
 #include <sys/mman.h>
 #include "cjson/cJSON.h"
@@ -13,16 +13,17 @@
 //     Make sure the Altera Provided SoC EDS headers are included during build.
 //     These headers are found in Quartus' Installation folder
 //     /opt/altera/14.0/embedded/ip/altera/hps/altera_hps/hwlib/include
-// #include "socal/socal.h"
-// #include "socal/hps.h"
-// #include "socal/alt_gpio.h"
+#include "socal/socal.h"
+#include "socal/hps.h"
+#include "socal/alt_gpio.h"
 
 // The hps_0 header file created with sopc-create-header-file utility.
-// #include "hps_0.h"
+#include "hps_0.h"
 
-// #define HW_REGS_BASE ( ALT_STM_OFST )
-// #define HW_REGS_SPAN ( 0x04000000 )
-// #define HW_REGS_MASK ( HW_REGS_SPAN - 1 )
+#define HW_REGS_BASE ( ALT_STM_OFST )
+#define HW_REGS_SPAN ( 0x04000000 )
+#define HW_REGS_MASK ( HW_REGS_SPAN - 1 )
+
 #define SAMPLE_SIZE 10
 #define FILE_CHAR_SIZE 2000
 
@@ -32,7 +33,8 @@
 #define MAX_AMPS "max_amperage"
 #define MULTIPLIER "multiplier"
 
-void get_avg_sensor_value(double *value);
+void calibrate_adc_base(uint32_t *adc_base, int channel);
+void get_avg_sensor_value(double *value, uint32_t *adc_base);
 char *readFile();
 void writeFile(char *str);
 void init_sensor_json(cJSON **root, char *name);
@@ -44,16 +46,14 @@ int main(int argc, char**argv) {
 	void *base;
     uint32_t *adc_base;
     int memdevice_fd;
-    int i;
     char sensor_name[20];
     double voltage_off, voltage_on, max, multiplier, some_value;
-    const int nReadNum = 10;
 
     int channel = 0x00 & 0x07;
     
     if (argc == 2) {
         sprintf(sensor_name, "current_sensor_%i", atoi(argv[1]));
-        // channel = ((uint8_t) atoi(argv[1])) & 0x07;              // comment out for testing
+        channel = ((uint8_t) atoi(argv[1])) & 0x07;              // comment out for testing
     } else {
     	printf("Incorrect number of inputs.\n");
     	exit(1);
@@ -71,7 +71,7 @@ int main(int argc, char**argv) {
     }
     cJSON_GetObjectItem(sensor, MAX_VOLTS)->valuedouble = 22.00;
     
-/*
+
     // Open /dev/mem device
     if( (memdevice_fd = open("/dev/mem", (O_RDWR | O_SYNC))) < 0) {
         perror("Unable to open \"/dev/mem\".");
@@ -85,39 +85,21 @@ int main(int argc, char**argv) {
         close(memdevice_fd);
         exit(EXIT_FAILURE);
     }
-
-    // derive leds base address from base HPS registers
     adc_base = (uint32_t*) (base + ((ALT_LWFPGASLVS_OFST + ADC_LTC2308_0_BASE) & HW_REGS_MASK));
 
-    printf("ADC BASE ADDR = 0x%x\n", adc_base);
-
-    // IOWR(adc_base, 0x01, nReadNum);
-    *(adc_base + 0x01) = nReadNum;
-
-    //IOWR(adc_base, 0x00, (channel << 1) | 0x00);
-    //IOWR(adc_base, 0x00, (channel << 1) | 0x01);
-    //IOWR(adc_base, 0x00, (channel << 1) | 0x00);
+    // derive leds base address from base HPS registers
     
-    *adc_base = (channel << 1) | 0x00;
-    *adc_base = (channel << 1) | 0x01;
-    *adc_base = (channel << 1) | 0x00;
 
-    printf("wrote: 0x%04x", ((channel << 1) | 0x01));
-    
-    usleep(1);
-
-    //while( (IORD(adc_base, 0x00) & 0x01) == 0x00 );
-    while ((*adc_base & 0x01) == 0x00);
-*/
 
     // calibrate when the current is off.
     printf ("Turn off the sensors. Press ANY KEY to continue. ");  
     getchar();
     cJSON_GetObjectItem(sensor, MIN_AMPS)->valuedouble = 0.00;
 
-    get_avg_sensor_value(&voltage_off);
+    calibrate_adc_base(adc_base, channel);
+    get_avg_sensor_value(&voltage_off, adc_base);
     cJSON_GetObjectItem(sensor, MAX_VOLTS)->valuedouble = voltage_off;
-    printf("Average voltage for OFF sensors: %.2fV\n", voltage_off);
+    printf("Average voltage for OFF sensors: %.2fmV\n", voltage_off);
     printf("\n");
 
     // calibrate when the current is on.
@@ -125,7 +107,8 @@ int main(int argc, char**argv) {
     scanf("%lf", &max);
     cJSON_GetObjectItem(sensor, MAX_AMPS)->valuedouble = max;
 
-    get_avg_sensor_value(&voltage_on);
+    calibrate_adc_base(adc_base, channel);
+    get_avg_sensor_value(&voltage_on, adc_base);
     cJSON_GetObjectItem(sensor, MIN_VOLTS)->valuedouble = voltage_on;
     printf("Average voltage for ON sensors: %.2fV\n", voltage_on);
     printf("You entered %.2fmA as max.\n", max);
@@ -136,10 +119,10 @@ int main(int argc, char**argv) {
     cJSON_GetObjectItem(sensor, MULTIPLIER)->valuedouble = multiplier;
 
 
-    printf ("Enter a voltage to map: ");   
+    printf ("Enter mV to map: ");   
     scanf("%lf", &some_value);
 
-    printf("That's %.2fA.\n", (some_value-voltage_off)*multiplier);
+    printf("That's %.2fmA.\n", (voltage_off - some_value)*multiplier);
 /*
     // unmap and close /dev/mem
     if (munmap(base, HW_REGS_SPAN) < 0) {
@@ -158,13 +141,36 @@ int main(int argc, char**argv) {
     exit(EXIT_SUCCESS);
 }
 
-// void get_avg_sensor_value(double *value, uint32_t **adc_base) {      // comment out for testing
-void get_avg_sensor_value(double *value) { 
+void calibrate_adc_base(uint32_t *adc_base, int channel) {
+    
+    printf("ADC BASE ADDR = 0x%p\n", adc_base);
+
+    // IOWR(adc_base, 0x01, nReadNum);
+    *(adc_base + 0x01) = SAMPLE_SIZE;
+
+    //IOWR(adc_base, 0x00, (channel << 1) | 0x00);
+    //IOWR(adc_base, 0x00, (channel << 1) | 0x01);
+    //IOWR(adc_base, 0x00, (channel << 1) | 0x00);
+    
+    *adc_base = (channel << 1) | 0x00;
+    *adc_base = (channel << 1) | 0x01;
+    *adc_base = (channel << 1) | 0x00;
+
+    printf("wrote: 0x%04x", ((channel << 1) | 0x01));
+    
+    usleep(1);
+
+    //while( (IORD(adc_base, 0x00) & 0x01) == 0x00 );
+    while ((*adc_base & 0x01) == 0x00);
+}
+
+void get_avg_sensor_value(double *value, uint32_t *adc_base) {      // comment out for testing
+// void get_avg_sensor_value(double *value) { 
     int i;
     *value = 0;
     for (i = 0; i < SAMPLE_SIZE; ++i) {
-        *value += rand()/100000;                             // comment out for running
-        // *value += *(*adc_base + 0x01);                       // comment out for testing
+        // *value += rand()/100000;                             // comment out for running
+        *value += *(adc_base + 0x01);                       // comment out for testing
     }
     *value /= SAMPLE_SIZE;
 }

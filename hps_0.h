@@ -54,26 +54,15 @@
 #define ONCHIP_MEMORY2_0_MEMORY_INFO_MEM_INIT_FILENAME soc_system_onchip_memory2_0
 
 /*
- * Macros for device 'lcd_16207_0', class 'altera_avalon_lcd_16207'
- * The macros are prefixed with 'LCD_16207_0_'.
- * The prefix is the slave descriptor.
- */
-#define LCD_16207_0_COMPONENT_TYPE altera_avalon_lcd_16207
-#define LCD_16207_0_COMPONENT_NAME lcd_16207_0
-#define LCD_16207_0_BASE 0x0
-#define LCD_16207_0_SPAN 32
-#define LCD_16207_0_END 0x1f
-
-/*
  * Macros for device 'leds_pio_0', class 'altera_avalon_pio'
  * The macros are prefixed with 'LEDS_PIO_0_'.
  * The prefix is the slave descriptor.
  */
 #define LEDS_PIO_0_COMPONENT_TYPE altera_avalon_pio
 #define LEDS_PIO_0_COMPONENT_NAME leds_pio_0
-#define LEDS_PIO_0_BASE 0x10
+#define LEDS_PIO_0_BASE 0x0
 #define LEDS_PIO_0_SPAN 32
-#define LEDS_PIO_0_END 0x2f
+#define LEDS_PIO_0_END 0x1f
 #define LEDS_PIO_0_BIT_CLEARING_EDGE_REGISTER 0
 #define LEDS_PIO_0_BIT_MODIFYING_OUTPUT_REGISTER 0
 #define LEDS_PIO_0_CAPTURE 0
@@ -95,9 +84,9 @@
  */
 #define ADC_LTC2308_0_COMPONENT_TYPE adc_ltc2308
 #define ADC_LTC2308_0_COMPONENT_NAME adc_ltc2308_0
-#define ADC_LTC2308_0_BASE 0x20
+#define ADC_LTC2308_0_BASE 0x10
 #define ADC_LTC2308_0_SPAN 16
-#define ADC_LTC2308_0_END 0x2f
+#define ADC_LTC2308_0_END 0x1f
 
 /*
  * Macros for device 'sysid_qsys', class 'altera_avalon_sysid_qsys'
@@ -110,7 +99,7 @@
 #define SYSID_QSYS_SPAN 8
 #define SYSID_QSYS_END 0x10007
 #define SYSID_QSYS_ID 2899645186
-#define SYSID_QSYS_TIMESTAMP 1488054349
+#define SYSID_QSYS_TIMESTAMP 1487964733
 
 /*
  * Macros for device 'jtag_uart', class 'altera_avalon_jtag_uart'
