@@ -17,3 +17,4 @@ $(TARGET): $(TARGET).o
 .PHONY: clean
 clean:
 	rm -f $(TARGET) *.a *.o *~
+	rm -f calib
