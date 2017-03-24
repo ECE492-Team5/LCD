@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <error.h>                               // comment out for testing
+#include <error.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 #include "cjson/cJSON.h"
@@ -40,9 +40,7 @@ void writeFile(char *str);
 void init_sensor_json(cJSON **root, char *name);
 
 // cJSON library link: https://github.com/DaveGamble/cJSON/tree/master
-
 int main(int argc, char**argv) {
-	//testing
 	void *base;
     uint32_t *adc_base;
     int memdevice_fd;
@@ -51,9 +49,10 @@ int main(int argc, char**argv) {
 
     int channel = 0x00 & 0x07;
     
+    // Initialize the sensor.
     if (argc == 2) {
         sprintf(sensor_name, "current_sensor_%i", atoi(argv[1]));
-        channel = ((uint8_t) atoi(argv[1])) & 0x07;              // comment out for testing
+        channel = ((uint8_t) atoi(argv[1])) & 0x07;
     } else {
     	printf("Incorrect number of inputs.\n");
     	exit(1);
@@ -69,8 +68,6 @@ int main(int argc, char**argv) {
         init_sensor_json(&root, sensor_name);
         sensor = cJSON_GetObjectItem(root, sensor_name);
     }
-    cJSON_GetObjectItem(sensor, MAX_VOLTS)->valuedouble = 22.00;
-    
 
     // Open /dev/mem device
     if( (memdevice_fd = open("/dev/mem", (O_RDWR | O_SYNC))) < 0) {
@@ -86,9 +83,6 @@ int main(int argc, char**argv) {
         exit(EXIT_FAILURE);
     }
     adc_base = (uint32_t*) (base + ((ALT_LWFPGASLVS_OFST + ADC_LTC2308_0_BASE) & HW_REGS_MASK));
-
-    // derive leds base address from base HPS registers
-    
 
 
     // calibrate when the current is off.
@@ -118,19 +112,12 @@ int main(int argc, char**argv) {
     multiplier = max/fabs(voltage_off-voltage_on);
     cJSON_GetObjectItem(sensor, MULTIPLIER)->valuedouble = multiplier;
 
-
-    printf ("Enter mV to map: ");   
-    scanf("%lf", &some_value);
-
-    printf("That's %.2fmA.\n", (voltage_off - some_value)*multiplier);
-/*
     // unmap and close /dev/mem
     if (munmap(base, HW_REGS_SPAN) < 0) {
         perror("munmap() failed.");
         close(memdevice_fd);
         exit(EXIT_FAILURE);
     }
-*/
 
     // write back to file and free memory
     char *updated = cJSON_Print(root);
@@ -144,13 +131,7 @@ int main(int argc, char**argv) {
 void calibrate_adc_base(uint32_t *adc_base, int channel) {
     
     printf("ADC BASE ADDR = 0x%p\n", adc_base);
-
-    // IOWR(adc_base, 0x01, nReadNum);
     *(adc_base + 0x01) = SAMPLE_SIZE;
-
-    //IOWR(adc_base, 0x00, (channel << 1) | 0x00);
-    //IOWR(adc_base, 0x00, (channel << 1) | 0x01);
-    //IOWR(adc_base, 0x00, (channel << 1) | 0x00);
     
     *adc_base = (channel << 1) | 0x00;
     *adc_base = (channel << 1) | 0x01;
@@ -164,20 +145,18 @@ void calibrate_adc_base(uint32_t *adc_base, int channel) {
     while ((*adc_base & 0x01) == 0x00);
 }
 
-void get_avg_sensor_value(double *value, uint32_t *adc_base) {      // comment out for testing
-// void get_avg_sensor_value(double *value) { 
+void get_avg_sensor_value(double *value, uint32_t *adc_base) {
     int i;
     *value = 0;
     for (i = 0; i < SAMPLE_SIZE; ++i) {
-        // *value += rand()/100000;                             // comment out for running
-        *value += *(adc_base + 0x01);                       // comment out for testing
+        *value += *(adc_base + 0x01);
     }
     *value /= SAMPLE_SIZE;
 }
 
 // Function from a save file.
 // Modified for our program
-// http://stackoverflow.com/questions/4823177/reading-a-file-character-by-character-in-c
+// credit: http://stackoverflow.com/questions/4823177/reading-a-file-character-by-character-in-c
 char *readFile() {
     FILE *file = fopen("sensor_data_json.txt", "r");
     char *code;
@@ -185,7 +164,7 @@ char *readFile() {
     int c;
 
     if (file == NULL)
-        exit(1); //could not open file
+        exit(1);
 
     code = malloc(FILE_CHAR_SIZE);
 
@@ -197,6 +176,7 @@ char *readFile() {
     return code;
 }
 
+// Function rewrites the file with passed in json string.
 void writeFile(char *str) {
     FILE *file = fopen("sensor_data_json.txt", "w");
     if (file != NULL) {
@@ -205,6 +185,7 @@ void writeFile(char *str) {
     }
 }
 
+// Function to initializes the json for a specific sensor
 void init_sensor_json(cJSON **root, char name[20]) {
     cJSON *sensor;
     cJSON_AddItemToObject(*root, name, sensor = cJSON_CreateObject());
