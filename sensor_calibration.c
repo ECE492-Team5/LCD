@@ -178,7 +178,7 @@ char *readFile() {
 
 // Function rewrites the file with passed in json string.
 void writeFile(char *str) {
-    FILE *file = fopen("sensor_data_json.txt", "w");
+    FILE *file = fopen("/var/tmp/sensor-config/sensor_data_json.txt", "w");
     if (file != NULL) {
         fprintf(file, "%s", str);
         fclose(file);

@@ -1,7 +1,7 @@
 
 # Makefile based on Terasic Makefile for my_first_hps-fpga template project
 
-TARGET = calibration_testing
+TARGET = sensor_calibration
 CFLAGS = -static -g -Wall
 LDFLAGS = -g -Wall
 CC = gcc
