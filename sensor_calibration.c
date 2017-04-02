@@ -45,7 +45,7 @@ int main(int argc, char**argv) {
     uint32_t *adc_base;
     int memdevice_fd;
     char sensor_name[20];
-    double voltage_off, voltage_on, max, multiplier, some_value;
+    double voltage_off, voltage_on, max, multiplier;
 
     int channel = 0x00 & 0x07;
     
