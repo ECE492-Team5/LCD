@@ -68,7 +68,7 @@ int main(int argc, char**argv) {
         init_sensor_json(&root, sensor_name);
         sensor = cJSON_GetObjectItem(root, sensor_name);
     }
-
+	
     // Open /dev/mem device
     if( (memdevice_fd = open("/dev/mem", (O_RDWR | O_SYNC))) < 0) {
         perror("Unable to open \"/dev/mem\".");
@@ -158,7 +158,7 @@ void get_avg_sensor_value(double *value, uint32_t *adc_base) {
 // Modified for our program
 // credit: http://stackoverflow.com/questions/4823177/reading-a-file-character-by-character-in-c
 char *readFile() {
-    FILE *file = fopen("sensor_data_json.txt", "r");
+    FILE *file = fopen("/var/tmp/sensor-config/config.json", "r");
     char *code;
     size_t n = 0;
     int c;
@@ -178,7 +178,7 @@ char *readFile() {
 
 // Function rewrites the file with passed in json string.
 void writeFile(char *str) {
-    FILE *file = fopen("/var/tmp/sensor-config/sensor_data_json.txt", "w");
+    FILE *file = fopen("/var/tmp/sensor-config/config.json", "w");
     if (file != NULL) {
         fprintf(file, "%s", str);
         fclose(file);
